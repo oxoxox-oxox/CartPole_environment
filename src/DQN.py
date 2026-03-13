@@ -27,7 +27,7 @@ class DQN:
 
         self.gamma = gamma
         self.epsilon = epsilon
-        self.target_update = self.target_update
+        self.target_update = target_update
         self.count = 0
         self.device = device
 
@@ -47,7 +47,7 @@ class DQN:
         rewards = torch.tensor(
             transition_dict['rewards'], dtype=torch.float).view(-1, 1).to(self.device)
         next_states = torch.tensor(
-            transition_dict['next_states'], dtype=torch.float).view(-1, 1).to(self.device)
+            transition_dict['next_states'], dtype=torch.float).to(self.device)
         dones = torch.tensor(
             transition_dict['dones'], dtype=torch.float).view(-1, 1).to(self.device)
 
