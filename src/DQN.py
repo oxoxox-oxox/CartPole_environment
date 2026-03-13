@@ -29,10 +29,39 @@ class DQN:
         self.epsilon = epsilon
         self.target_update = self.target_update
         self.count = 0
-        self.divice = device
+        self.device = device
 
     def take_action(self, state):
         if np.random.random() < self.epsilon:
             action = np.random.randint(self.action_dim)
         else:
-            state = torch.tensor
+            state = torch.tensor([state], dtype=torch.float).to(self.device)
+            action = self.q_net(state).argmax().item()
+        return action
+
+    def update(self, transition_dict):
+        states = torch.tensor(
+            transition_dict['states'], dtype=torch.float).to(self.device)
+        actions = torch.tensor(
+            transition_dict['actions']).view(-1, 1).to(self.device)
+        rewards = torch.tensor(
+            transition_dict['rewards'], dtype=torch.float).view(-1, 1).to(self.device)
+        next_states = torch.tensor(
+            transition_dict['next_states'], dtype=torch.float).view(-1, 1).to(self.device)
+        dones = torch.tensor(
+            transition_dict['dones'], dtype=torch.float).view(-1, 1).to(self.device)
+
+        q_values = self.q_net(states).gather(1, actions)
+        max_next_q_values = self.target_q_net(
+            next_states).max(1)[0].view(-1, 1)
+        q_target = rewards + self.gamma * max_next_q_values * (1 - dones)
+
+        dqn_loss = torch.mean(F.mse_loss(q_values, q_target))
+        self.optimizer.zero_grad()
+        dqn_loss.backward()
+        self.optimizer.step()
+
+        if self.count % self.target_update == 0:
+            self.target_q_net.load_state_dict(
+                self.q_net.state_dict())
+        self.count += 1
