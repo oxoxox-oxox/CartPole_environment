@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
 from net_model.Qnet import Qnet
-from env.environment import ReplayBuffer
+from env.replay_buffer_pool import ReplayBuffer
 from src.DQN import DQN
 
 lr = 2e-3
@@ -43,7 +43,6 @@ for i in range(10):
             done = False
             while not done:
                 action = agent.take_action(state)
-                # 修改5：step 返回 5 个值
                 next_state, reward, terminated, truncated, info = env.step(
                     action)
                 done = terminated or truncated  # 合并终止标志
